@@ -1,2 +1,34 @@
 # Reinforcement-Learning-Experiment-Notes
-Experimental code and demonstration of running effects during reinforcement learning.
+
+本项目记录了我在学习强化学习（Reinforcement Learning）过程中的实验内容。仓库包含了各个强化学习算法的Python实现代码、详细的实验报告以及相关的参考资料。
+
+## 📖 仓库简介
+
+在学习强化学习的过程中，我通过编写代码并在经典环境（如 FrozenLake、自定义环境等）中进行测试，加深了对各种算法的理解。本仓库对这些实验进行了归档，每一个实验通常包含以下内容：
+- **算法代码**：核心算法的 Python 实现。
+- **环境代码**：测试算法使用的具体环境。
+- **实验报告**：对实验过程、理论推导及结果分析的总结。
+- **参考资料**：学习过程中参考的文献（如 Sutton & Barto 的经典教材《Reinforcement Learning: An Introduction》等）。
+
+## 🗂️ 目录结构
+
+目前仓库包含以下核心模块（会随着学习进度不断更新）：
+
+### 1. 动态规划（Dynamic Programming）
+在这部分实验中，实现了基于模型的经典动态规划算法：
+- **策略迭代（Policy Iteration）**
+- **价值迭代（Value Iteration）**
+
+### 2. 蒙特卡洛方法（Monte Carlo Methods）
+在不需要完整环境动态模型的情况下，通过采样进行强化学习：
+- **On-policy MC 控制**
+- **Off-policy MC 控制**
+- 对应的强化学习抽象和基类实现。
+
+## 📖 实验报告
+包含了针对每次实验内容撰写的详细报告，详见各章节的 PDF 文件。
+
+## 🚀 说明
+
+本仓库内容仅为学习强化学习算法过程中的一些实践，可能包含一些错误或者不足之处，如果要做参考请自行检查。
+

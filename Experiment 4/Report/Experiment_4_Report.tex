@@ -1,0 +1,224 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{setspace}
+
+\geometry{left=2cm,right=2cm,top=2cm,bottom=2cm}
+\setstretch{1.05}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    aboveskip=5pt, belowskip=5pt
+}
+
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{6pt}{4pt}
+\titlespacing*{\subsection}{0pt}{4pt}{3pt}
+
+\algsetup{indent=1em}
+\renewcommand{\algorithmiccomment}[1]{\hfill// #1}
+
+
+\begin{document}
+
+\section{实验概述}
+\subsection{实验目的}
+通过三种蒙特卡洛（MC）强化学习方法求解FrozenLake问题，对比算法特性、优缺点与适用场景。
+
+\subsection{FrozenLake环境介绍}
+FrozenLake是一个经典的网格世界问题，其环境设置如下：
+
+\begin{itemize}
+    \item \textbf{状态空间}：$4 \times 4$的网格，共16个状态（$s \in \{0,1,...,15\}$）
+    \item \textbf{动作空间}：4个动作——左(0)、下(1)、右(2)、上(3)
+    \item \textbf{环境布局}：
+    \begin{verbatim}
+    S F F F      S: 起点 (状态0)
+    F H F H      F: 冰面 (安全)
+    F F F H      H: 冰洞 (状态5,7,11,12，掉入则失败)
+    H F F G      G: 目标 (状态15，到达则成功)
+    \end{verbatim}
+    \item \textbf{奖励设置}：到达目标获得奖励1，其他情况奖励为0
+    \item \textbf{终止条件}：掉入冰洞或到达目标
+\end{itemize}
+\subsection{实验环境}
+Python 3.8 + Gymnasium + NumPy
+
+\section{蒙特卡洛理论基础}
+\subsection{核心原理}
+基于轨迹采样估计价值函数，无需环境模型，适用于回合式任务。
+\subsection{核心公式}
+回报计算：
+\[ G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \]
+行为值函数：
+\[ Q(s,a) = \frac{1}{N(s,a)} \sum G_i(s,a),\quad Q(s,a) \leftarrow Q(s,a) + \alpha (G-Q) \]
+
+\section{探索初始化MC方法}
+\subsection{算法原理}
+随机初始状态-动作对，保证全探索，首次访问更新Q值。
+
+\subsection{算法流程}
+\begin{algorithm}[H]
+\caption{探索初始化MC}
+\begin{algorithmic}[1]
+\STATE 初始化$Q,N$
+\FOR{每个回合}
+    \STATE 随机初始动作，生成轨迹
+    \STATE $G \leftarrow 0$
+    \FOR{$t = T-1,\dots,0$}
+        \STATE $G \leftarrow \gamma G + r_{t+1}$
+        \STATE 首次访问则更新$N,Q$
+    \ENDFOR
+    \STATE 更新$\epsilon$-贪婪策略
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{实验结果}
+2000轮收敛，策略变化为0，测试成功率100\%，学习到最优路径。
+
+\section{同策略（On-Policy）MC方法}
+\subsection{算法原理}
+单一$\epsilon$-贪婪策略完成采样与优化，平衡探索与利用。
+\[ \pi(a|s) = \begin{cases} 1-\epsilon+\epsilon/4 & a=\arg\max Q \\ \epsilon/4 & \text{其他} \end{cases} \]
+
+\subsection{算法流程}
+\begin{algorithm}[H]
+\caption{同策略MC}
+\begin{algorithmic}[1]
+\STATE 初始化$Q,N,\pi$
+\FOR{每个回合}
+    \STATE 策略采样轨迹，更新$Q$
+    \STATE 衰减$\epsilon$，更新策略
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{实验结果}
+最终$\epsilon=0.295$，策略未收敛；测试成功率0\%；起点贪婪动作=左，原地卡死。
+
+\section{离策略（Off-Policy）MC方法}
+\subsection{算法原理}
+双策略分离：行为策略$b$（探索）+目标策略$\pi$（优化），重要性采样修正偏差。
+\[ \rho = \prod \frac{\pi(a|s)}{b(a|s)},\quad Q(s,a) = \frac{\sum W_i G_i}{\sum W_i} \]
+
+\subsection{算法流程}
+\begin{algorithm}[H]
+\caption{离策略MC}
+\begin{algorithmic}[1]
+\STATE 初始化$Q,C,\pi,b$
+\FOR{每个回合}
+    \STATE 行为策略生成轨迹
+    \STATE $G\leftarrow0,W\leftarrow1$
+    \FOR{$t=T-1,\dots,0$}
+        \STATE 更新$G,Q,C,W$
+        \STATE $W=0$则终止
+    \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{实验结果}
+最终$\epsilon=0.299$，测试成功率100\%，Q值估计准确，收敛最优策略。
+
+\section{算法对比分析}
+\subsection{性能对比}
+\begin{table}[H]
+\centering
+\small
+\caption{三种MC方法性能对比}
+\begin{tabular}{lccc}
+\toprule
+\textbf{指标} & 探索初始化MC & 同策略MC & 离策略MC \\
+\midrule
+成功率 & 100\% & 0\% & 100\% \\
+收敛轮数 & $\sim$1000 & 未收敛 & $\sim$1000 \\
+最终$\epsilon$ & 0.1 & 0.295 & 0.299 \\
+起点动作 & 下 & 左 & 下 \\
+稳定性 & 高 & 低 & 高 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{状态0 Q值对比}
+\begin{table}[H]
+\centering
+\small
+\caption{状态0 Q值估计}
+\begin{tabular}{lcccc}
+\toprule
+方法 & 左 & 下 & 右 & 上 \\
+\midrule
+探索初始化MC & 0.712 & \textbf{0.794} & 0.639 & 0.704 \\
+同策略MC & \textbf{0.400} & 0.370 & 0.349 & 0.347 \\
+离策略MC & 0.305 & \textbf{0.753} & 0.277 & 0.662 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{核心特点}
+\begin{itemize}
+    \item \textbf{探索初始化MC}：实现简单、收敛稳定，仅适用于可控制初始状态的场景。
+    \item \textbf{同策略MC}：数据效率高，仅支持$\epsilon$-soft策略，超参数敏感。
+    \item \textbf{离策略MC}：灵活度高，可学习确定性最优策略，需重要性采样。
+\end{itemize}
+
+\subsection{三种方法异同总结}
+\textbf{相同点}
+\begin{enumerate}
+    \item 均属于蒙特卡洛回合式强化学习，基于完整轨迹计算回报更新Q值
+    \item 均采用$\epsilon$-贪婪策略实现探索与利用平衡
+    \item 均无需环境模型，属于无模型强化学习算法
+    \item 均适用于FrozenLake这类离散、确定性网格环境
+\end{enumerate}
+
+\textbf{不同点}
+\begin{enumerate}
+    \item \textbf{策略机制}：探索初始化MC=随机起始；同策略MC=单一策略；离策略MC=行为+目标双策略
+    \item \textbf{核心技术}：仅离策略MC需要重要性采样，其余两种无需
+    \item \textbf{学习目标}：探索初始化/离策略可学确定性最优策略；同策略仅能学$\epsilon$-soft策略
+    \item \textbf{实用性}：探索初始化MC仅理论可用；同/离策略MC适用于真实场景
+    \item \textbf{实验结果}：探索初始化、离策略收敛成功；同策略因参数问题学习失败
+\end{enumerate}
+
+\section{同策略MC失败分析}
+\subsection{核心原因}
+1. Q值估计偏差：起点左动作被高估，最优动作Q值最低；
+2. $\epsilon$衰减过慢：探索概率过高，策略无法稳定收敛；
+3. 测试机制：纯贪婪测试直接触发起点卡死，成功率为0。
+
+\subsection{改进方案}
+加快$\epsilon$衰减、缩短策略更新周期、增加训练轮数。
+
+\section{结论}
+1. 探索初始化MC与离策略MC可习得100；
+2. 离策略MC分离探索与优化，是实际应用的最优选择；
+3. 同策略MC对超参数极度敏感，需精细调参。
+
+\section{最优路径}
+\[
+\begin{array}{c}
+0 \xrightarrow{\text{下}} 4 \xrightarrow{\text{下}} 8 \xrightarrow{\text{右}} 9 \xrightarrow{\text{右}} 10 \xrightarrow{\text{下}} 14 \xrightarrow{\text{右}} 15
+\end{array}
+\]
+
+\section{附录：实验代码}
+Github仓库：\\https://github.com/Hemoritris/Reinforcement-Learning-Experiment-Notes/tree/main/Experiment\%204/Code
+\end{document}
