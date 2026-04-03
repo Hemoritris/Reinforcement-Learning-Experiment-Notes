@@ -2,10 +2,9 @@ import gymnasium as gym
 import numpy as np
 from scipy.linalg import solve
 
-# ===================== 1. 加载环境 + 解包获取原生MDP（修复核心！） =====================
-# 冰湖环境（标准离散MDP，替代Yuanyang）
+# ===================== 加载环境 =====================
+# 冰湖环境
 env = gym.make("FrozenLake-v1", is_slippery=True)
-# 关键：解包获取原生环境，才能访问 P 转移概率表
 env = env.unwrapped  
 
 # MDP核心参数
@@ -19,12 +18,12 @@ print(f"FrozenLake MDP 基础信息")
 print(f"状态数: {n_states} | 动作数: {n_actions} | 折扣因子 γ: {GAMMA}")
 print("="*60)
 
-# ===================== 2. 随机策略 =====================
+# ===================== 随机策略 =====================
 def create_random_policy():
     policy = np.ones([n_states, n_actions]) / n_actions
     return policy
 
-# ===================== 3. 策略评估（解析法） =====================
+# ===================== 策略评估（解析法） =====================
 def policy_evaluation_analytic(policy):
     P_pi = np.zeros((n_states, n_states))
     R_pi = np.zeros(n_states)
@@ -40,7 +39,7 @@ def policy_evaluation_analytic(policy):
     V_pi = solve(A, R_pi)
     return V_pi
 
-# ===================== 4. 策略评估（数值迭代法） =====================
+# ===================== 策略评估（数值迭代法） =====================
 def policy_evaluation_numeric(policy, theta=THETA):
     V = np.zeros(n_states)
     while True:
@@ -59,7 +58,7 @@ def policy_evaluation_numeric(policy, theta=THETA):
             break
     return V
 
-# ===================== 5. 策略迭代 =====================
+# ===================== 策略迭代 =====================
 def policy_iteration():
     policy = create_random_policy()
     while True:
@@ -85,7 +84,7 @@ def policy_iteration():
             break
     return policy, V
 
-# ===================== 6. 值迭代 =====================
+# ===================== 值迭代 =====================
 def value_iteration(theta=THETA):
     V = np.zeros(n_states)
     while True:
@@ -115,7 +114,7 @@ def value_iteration(theta=THETA):
         policy[s][best_action] = 1.0
     return policy, V
 
-# ===================== 7. 测试策略 =====================
+# ===================== 测试策略 =====================
 def test_agent(policy, episodes=100):
     success = 0
     for _ in range(episodes):
@@ -131,21 +130,21 @@ def test_agent(policy, episodes=100):
 
 # ===================== 主程序 =====================
 if __name__ == "__main__":
-    # 1. 策略评估测试
+    # 策略评估测试
     random_policy = create_random_policy()
     V_analytic = policy_evaluation_analytic(random_policy)
     V_numeric = policy_evaluation_numeric(random_policy)
 
     print("随机策略 - 解析法价值：", np.round(V_analytic[:], 3))
     print("随机策略 - 数值法价值：", np.round(V_numeric[:], 3))
-    print("两种方法结果一致，验证成功！\n")
+    print("两种方法结果一致，验证成功\n")
 
-    # 2. 策略迭代
+    # 策略迭代
     pi_policy, pi_V = policy_iteration()
     pi_success = test_agent(pi_policy)
     print(f"策略迭代 | 平均价值: {np.mean(pi_V):.3f} | 成功率: {pi_success:.0%}")
 
-    # 3. 值迭代
+    # 值迭代
     vi_policy, vi_V = value_iteration()
     vi_success = test_agent(vi_policy)
     print(f"值迭代 | 平均价值: {np.mean(vi_V):.3f} | 成功率: {vi_success:.0%}")

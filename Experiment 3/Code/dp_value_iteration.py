@@ -28,14 +28,13 @@ class DP_Value_Iter:
             discrete = discrete * self.n_bins[i] + (np.digitize(state[i], self.state_bins[i]) - 1)
         return discrete
 
-    # ✅ 纯离散转移，无环境交互
     def transform(self, state, action):
         next_state = (state + action) % len(self.states)
         reward = 1.0 if next_state != 0 else 0.0
         done = next_state == 0
         return next_state, reward, done
 
-    # 值迭代（二合一评估+改进）
+    # 值迭代
     def value_iteration(self):
         print("开始值迭代...")
         for _ in range(1000):
@@ -62,7 +61,7 @@ if __name__ == "__main__":
     dp = DP_Value_Iter()
     dp.value_iteration()
 
-    # ✅ 测试阶段：环境交互（先reset）
+    # 测试阶段
     env = gym.make("CartPole-v1", render_mode="human")
     state, _ = env.reset()
     total_reward = 0
