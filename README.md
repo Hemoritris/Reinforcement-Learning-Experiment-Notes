@@ -8,7 +8,7 @@
 - **算法代码**：核心算法的 Python 实现。
 - **环境代码**：测试算法使用的具体环境。
 - **实验报告**：对实验过程、理论推导及结果分析的总结。
-- **参考资料**：学习过程中参考的文献（如 Sutton & Barto 的经典教材《Reinforcement Learning: An Introduction》等）。
+- **参考资料**：学习过程中参考的文献（如 Sutton & Barto 的经典教材《Reinforcement Learning: An Introduction》等）、代码等。
 
 ## 🗂️ 目录结构
 
@@ -24,6 +24,12 @@
 - **On-policy MC 控制**
 - **Off-policy MC 控制**
 - 对应的强化学习抽象和基类实现。
+
+### 3. 时序差分算法（Temporal Difference Learning）
+- **SARSA 算法**：基于当前策略的同策略（On-policy）TD 控制。
+- **Q-Learning 算法**：基于最优策略的异策略（Off-policy）TD 控制。
+- **算法对比分析**：对两种经典 TD 算法在收敛速度、当前表现及最佳表现等方面进行可视化对比评估。
+
 
 ## 📖 实验报告
 包含了针对每次实验内容撰写的详细报告，详见各章节的 PDF 文件。
