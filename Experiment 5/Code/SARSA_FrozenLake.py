@@ -16,6 +16,7 @@ class SARSA_Agent:
         self.gamma = gamma  # 折扣因子
         self.epsilon = epsilon  # 探索率
         self.epsilon_min = 0.01
+        
         self.epsilon_decay = 0.9995
         
         # 初始化Q值表
